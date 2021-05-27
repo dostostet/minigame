@@ -2,6 +2,7 @@ let time = document.querySelector('.time');
 let score = document.querySelector('.score');
 
 let cnt = 0;
+let cntCheck = false;
 let clickscore = 0;                             //재밌게 점수반영 하기 위한 옵션툴. 스코어어떤식으로 적용할지 정할때...상의해서쓰자.
 let stopwatch = setInterval(() => { //시간초 세주기
     cnt++;
@@ -10,14 +11,21 @@ let stopwatch = setInterval(() => { //시간초 세주기
         score.textContent = cnt-1;          //12초에 누르면 13초로 출력되는것을 확인하였음.
     }
     else{
-        time.textContent = cnt;  
+        if(cntCheck){
+          time.textContent = cnt;   
+        }
+        else{
+            cnt = 0;
+        }
     }
 }, 1000);
 
 
 let rect = [,];
 const bomb = 'img/bomb.png';
+const flag = 'img/one.png';
 let isOver = false;
+let isFlag = false;
 setBomb = Array(10).fill('BB');   //폭탄 해당 id에 넣어버리기 위한 배열
 
 var setArray = Array(8*10-10).fill('NBB');//폭탄이 아닌 id 인식을 위한 배열
@@ -34,7 +42,7 @@ shuffleArray(setBombArray); //셔플완료.
 /////////////////////////////////////////////////////////////////////////////////
 let Id = 0;
 let bcnt = 0;
-const playbox = document.querySelector('.playbox');  
+const playbox = document.querySelector('.playbox');
 
 
 for(let i = 0; i < 8 ; i++){ 
@@ -45,24 +53,33 @@ for(let i = 0; i < 8 ; i++){
         var li = document.createElement('li');
         li.setAttribute('id',Id++);
         li.setAttribute('value',value);
+        li.setAttribute('isflag',isFlag)
         li.classList.add(setBombArray[bcnt++])
+
+
         rect[i][j] = li;
         if(rect[i][j].className=='BB'){
-            let img = document.createElement('img');
+            let img = document.createElement('img'); 
             img.src=bomb;
-            rect[i][j].appendChild(img);
+            li.appendChild(img);
         }
-       li.addEventListener('click', function(event){
-            click(rect[i][j],i,j)
+
+        li.addEventListener('mousedown', function(event){
+            if(event.button==2){
+                addFlags(rect[i][j])
+            }
+            else{
+                click(rect[i][j],i,j)
+            }
             if(rect[i][j].className=='BB check'){ 
                 isOver = true;                              //그냥 폭탄 그 자체를 여기서 다 처리한다. 
                 rect[i][j].style.backgroundColor='white';               //많이 복잡해보이지만 누를 시 
                 let target = event.target;                      //className 이 'BB check'로 표시되기때문에    
                 let selectimg = target.querySelector('img');    //걍 귀찮아서 새로 스타일을 덮어씌우는 형식이다.
                 selectimg.style.visibility = 'visible';
-                
             }
-            }
+  
+        }
         )
         ul.appendChild(rect[i][j])
     }
@@ -84,9 +101,27 @@ function getCountNearby(i, j){
             rect[a][b].value++;
             }
             catch(error){
-            //console.log(e);
             }
         }
+    }
+}
+//////////////////////////////////////////////////////깃발시스템
+function addFlags(li){
+
+    let id = li.id
+    var fcheck = li.getAttribute('isflag')
+    console.log("id "+id)
+    console.log("flag "+fcheck)
+
+    if(fcheck=="false"){
+        li.setAttribute('isflag',true)
+        let img = document.createElement('img');
+        img.src = flag;
+        li.appendChild(img);
+    }
+    else{
+                                                                                //5월28일자 그림추가삭제.
+                                                                                //removechild이용할거임.
     }
 }
 //////////////////////////////////////////////////////폭탄카운팅시스템.
@@ -95,6 +130,7 @@ const modal = document.querySelector('.modal');
 
 modal.addEventListener('click',function(){
     modal.classList.add('hidden');
+    cntCheck = true;
     time.textContent = 0;
 });
 
@@ -107,9 +143,7 @@ function click(li,i,j){
         let values = li.getAttribute('value')
         if(values!=0){
             li.classList.add("check")            
-            //console.log(li.classList.contains("check"))
             li.innerHTML = values
-            //console.log(li.getAttribute("Id"))
             checkNeighbor(i,j);
             return;
         }
